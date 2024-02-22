@@ -14,26 +14,26 @@ def linedetect(frame):
     # gets the  height and width of the frame
     height, width = canny.shape
     # this makes a rectangle
-    mask = np.zeros_like(gray)
+    #mask = np.zeros_like(gray)
     # points of the rectangle
-    point1 = (100, height - 150)
-    point2 = (100, 100)
-    point3 = (height - 150, 100)
-    point4 = (height - 150, height - 150)
+    #point1 = (100, height - 150)
+    #point2 = (100, 100)
+    #point3 = (height - 150, 100)
+    #point4 = (height - 150, height - 150)
     # array showing the coordinates of the trapezoid
-    trapezoid = np.array([[point1, point2, point3, point4]])
+    #trapezoid = np.array([[point1, point2, point3, point4]])
     # outlines the rectangle for user use
-    cv2.line(frame, point1, point2, (255, 255, 255), 3)
-    cv2.line(frame, point2, point3, (255, 255, 255), 3)
-    cv2.line(frame, point3, point4, (255, 255, 255), 3)
-    cv2.line(frame, point4, point1, (255, 255, 255), 3)
+    #cv2.line(frame, point1, point2, (255, 255, 255), 3)
+    #cv2.line(frame, point2, point3, (255, 255, 255), 3)
+    #cv2.line(frame, point3, point4, (255, 255, 255), 3)
+    #cv2.line(frame, point4, point1, (255, 255, 255), 3)
     # creates plolygon
-    mask = cv2.fillPoly(mask, trapezoid, 255)
+    #mask = cv2.fillPoly(mask, trapezoid, 255)
     # adds the mask
-    mask = cv2.bitwise_and(canny, mask)
+    #mask = cv2.bitwise_and(canny, mask)
 
     # houghlines (gets a set of lines that are outlined in the masked image)
-    lines = cv2.HoughLinesP(mask, 1, np.pi / 180, 50, maxLineGap=100, minLineLength=80)
+    lines = cv2.HoughLinesP(canny, 1, np.pi / 180, 50, maxLineGap=100, minLineLength=80)
     # lists for slopes
     slopes = {}
     # keeps track of the number of kinda unique slopes
@@ -43,6 +43,8 @@ def linedetect(frame):
         for line in lines:
             # gets endpoints for line
             x1, y1, x2, y2 = line[0]
+            cv2.line(frame, (x1, y1), (x2, y2), (255, 0, 255), 3)
+
             # if the slope is infinite then set it to a huge number
             try:
                 slope = (y1 - y2) / (x1 - x2)
@@ -60,67 +62,12 @@ def linedetect(frame):
                     break
             if test == 0:
                 slopecount[slope] = 1
+    slopeintercept = {}
+    for a in slopecount:
+        if a - 0.2 < slope < 0.2 + a:
 
-    # if dictionary is no empty
-    if slopes != {}:
-        # finding the most common slope (slope of the parallel lines)
-        sloper = 239018
-        for a in slopecount:
-            if sloper == 239018:
-                sloper = a
-            else:
-                if slopecount[sloper] < slopecount[a]:
-                    sloper = a
-        # lists to keep track of the x,y values and yintercepts of the lines that fit the slope
-        pointsy = {}
-        yintercepts = []
-        for a in slopes:
-            if sloper - 0.1 < slopes[a] < sloper + 0.1:
-                points = a
-                # calculates y intercept
-                yinterception = points[0][1] - sloper * points[0][0]
-                checker = 0
-                # adds the x and y values of the endpoints of a line to a dictionary corresponding to their y intercept
-                for b in pointsy:
-                    if b - 20 < yinterception < b + 20:
-                        xval = pointsy[b][0]
-                        yval = pointsy[b][1]
-                        xval.append(points[0][0])
-                        xval.append(points[1][0])
-                        yval.append(points[0][1])
-                        yval.append(points[1][1])
-                        pointsy[b] = [xval, yval]
-                        checker = 1
-                        break
-                if checker == 0:
-                    xval = [points[0][0], points[1][0]]
-                    yval = [points[0][1], points[1][1]]
-                    pointsy[yinterception] = [xval, yval]
-                # adds y intercepts to another list
-                testing = 0
-                for yintercept in yintercepts:
-                    if yintercept - 1 < yinterception < yintercept + 1:
-                        testing = 1
-                if testing == 0:
-                    yintercepts.append(yinterception)
 
-        if pointsy != {}:
-            for intercepty in pointsy:
-                # adds a line that condenses all the smaller lines with similar y intercepts
-                xval = pointsy[intercepty][0]
-                yval = pointsy[intercepty][1]
-                if sloper < 0:
-                    cv2.line(frame, (min(xval), max(yval)), (max(xval), min(yval)), (255, 25, 120), 10)
-                else:
-                    cv2.line(frame, (min(xval), min(yval)), (max(xval), max(yval)), (255, 25, 120), 10)
 
-        # sees if the yintercept list is none
-        if yintercepts != []:
-            print(yintercepts)
-            # average of the yintercepts
-            averagey = (min(yintercepts) + max(yintercepts)) / 2
-            # draws the midline
-            cv2.line(frame, (0, int(averagey)), (width, int(width * sloper + averagey)), (208, 224, 64), 3)
     return(frame)
 
 
