@@ -67,7 +67,6 @@ def linedetect(frame):
         if a - 0.2 < slope < 0.2 + a:
 
 
-
     return(frame)
 
 
